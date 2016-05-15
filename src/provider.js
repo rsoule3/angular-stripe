@@ -1,12 +1,19 @@
 'use strict'
 
-var service = require('./service')
+var service = require('./service');
 
-module.exports = stripeProvider
+module.exports = stripeProvider;
 
-stripeProvider.$inject = ['Stripe']
+stripeProvider.$inject = ['Stripe'];
+
 function stripeProvider (Stripe) {
-  if (!Stripe) throw new Error('Stripe must be available as window.Stripe')
-  this.setPublishableKey = Stripe.setPublishableKey
-  this.$get = service
+  if (Stripe) {
+      this.setPublishableKey = Stripe.setPublishableKey;
+  } else {
+      this.setPublishableKey = function() {
+          console.log('Stripe is not available as window.Stripe');
+      };
+  }
+
+  this.$get = service;
 }
