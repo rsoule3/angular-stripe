@@ -1,2 +1,171 @@
-!function(modules){function __webpack_require__(moduleId){if(installedModules[moduleId])return installedModules[moduleId].exports;var module=installedModules[moduleId]={exports:{},id:moduleId,loaded:!1};return modules[moduleId].call(module.exports,module,module.exports,__webpack_require__),module.loaded=!0,module.exports}var installedModules={};return __webpack_require__.m=modules,__webpack_require__.c=installedModules,__webpack_require__.p="",__webpack_require__(0)}([function(module,exports,__webpack_require__){"use strict";var provider=__webpack_require__(1),Stripe=window.Stripe;module.exports=angular.module("angular-stripe",[]).constant("Stripe",Stripe).provider("stripe",provider).run(verifyQ).name},function(module,exports,__webpack_require__){"use strict";function stripeProvider(Stripe){Stripe?this.setPublishableKey=Stripe.setPublishableKey:this.setPublishableKey=function(){console.log("Stripe is not available as window.Stripe")},this.$get=service}var service=__webpack_require__(2);module.exports=stripeProvider,stripeProvider.$inject=["Stripe"]},function(module,exports,__webpack_require__){"use strict";function factory(Stripe,$q){return stripeAsPromised(Stripe,$q)}var stripeAsPromised=__webpack_require__(3);module.exports=factory,factory.$inject=["Stripe","$q"]},function(module,exports,__webpack_require__){"use strict";function promisify(Promise,method,receiver,resolver){return function(){var args=Array.prototype.slice.call(arguments);return new Promise(function(resolve,reject){receiver[method].apply(receiver,args.concat(function(){resolver.apply({resolve:resolve,reject:reject},arguments)}))})}}function stripeResponseHandler(status,response){response.error?this.reject(extend(new Error,response.error)):this.resolve(response)}var extend=__webpack_require__(4),dot=__webpack_require__(5),asyncMethods=["card.createToken","bankAccount.createToken","bitcoinReceiver.createReceiver","bitcoinReceiver.pollReceiver","bitcoinReceiver.getReceiver"],helperMethods=["setPublishableKey","card.validateCardNumber","card.validateExpiry","card.validateCVC","card.cardType","bankAccount.validateRoutingNumber","bankAccount.validateAccountNumber","bitcoinReceiver.cancelReceiverPoll"];module.exports=function(Stripe,Promise){if("function"!=typeof Stripe)throw new Error("Stripe.js must be provided");if("function"!=typeof Promise)throw new Error("Promise constructor must be provided");var stripe={};return asyncMethods.forEach(function(method){var names=method.split("."),receiverName=names[0],methodName=names[1];dot.set(stripe,method,promisify(Promise,methodName,Stripe[receiverName],stripeResponseHandler))}),helperMethods.forEach(function(method){dot.set(stripe,method,dot.get(Stripe,method))}),stripe}},function(module,exports){function extend(target){for(var i=1;i<arguments.length;i++){var source=arguments[i];for(var key in source)hasOwnProperty.call(source,key)&&(target[key]=source[key])}return target}module.exports=extend;var hasOwnProperty=Object.prototype.hasOwnProperty},function(module,exports){"use strict";function isObjOrFn(x){return("object"==typeof x||"function"==typeof x)&&null!==x}module.exports.get=function(obj,path){if(!isObjOrFn(obj)||"string"!=typeof path)return obj;var pathArr=path.split(".");return pathArr.some(function(path,index){return obj=obj[path],void 0===obj?!0:void 0}),obj},module.exports.set=function(obj,path,value){if(isObjOrFn(obj)&&"string"==typeof path){var pathArr=path.split(".");pathArr.forEach(function(path,index){isObjOrFn(obj[path])||(obj[path]={}),index===pathArr.length-1&&(obj[path]=value),obj=obj[path]})}}}]);
-//# sourceMappingURL=angular-stripe.js.map
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.angularStripe = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+'use strict';
+
+function isObjOrFn(x) {
+	return (typeof x === 'object' || typeof x === 'function') && x !== null;
+}
+
+module.exports.get = function (obj, path) {
+	if (!isObjOrFn(obj) || typeof path !== 'string') {
+		return obj;
+	}
+
+	var pathArr = path.split('.');
+	pathArr.some(function (path, index) {
+		obj = obj[path];
+
+		if (obj === undefined) {
+			return true;
+		}
+	});
+
+	return obj;
+};
+
+module.exports.set = function (obj, path, value) {
+	if (!isObjOrFn(obj) || typeof path !== 'string') {
+		return;
+	}
+
+	var pathArr = path.split('.');
+	pathArr.forEach(function (path, index) {
+		if (!isObjOrFn(obj[path])) {
+			obj[path] = {};
+		}
+
+		if (index === pathArr.length - 1) {
+			obj[path] = value;
+		}
+
+		obj = obj[path];
+	});
+};
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict'
+
+var extend = _dereq_('xtend/mutable')
+var dot = _dereq_('dot-prop')
+
+var asyncMethods = [
+  'card.createToken',
+  'bankAccount.createToken',
+  'bitcoinReceiver.createReceiver',
+  'bitcoinReceiver.pollReceiver',
+  'bitcoinReceiver.getReceiver',
+]
+
+var helperMethods = [
+  'setPublishableKey',
+  'card.validateCardNumber',
+  'card.validateExpiry',
+  'card.validateCVC',
+  'card.cardType',
+  'bankAccount.validateRoutingNumber',
+  'bankAccount.validateAccountNumber',
+  'bitcoinReceiver.cancelReceiverPoll'
+]
+
+module.exports = function promisifyStripe (Stripe, Promise) {
+  if (typeof Stripe !== 'function') throw new Error('Stripe.js must be provided')
+  if (typeof Promise !== 'function') throw new Error('Promise constructor must be provided')
+  var stripe = {}
+  asyncMethods.forEach(function (method) {
+    var names = method.split('.')
+    var receiverName = names[0]
+    var methodName = names[1]
+    dot.set(stripe, method, promisify(Promise, methodName, Stripe[receiverName], stripeResponseHandler))
+  })
+  helperMethods.forEach(function (method) {
+    dot.set(stripe, method, dot.get(Stripe, method))
+  })
+  return stripe
+}
+
+function promisify (Promise, method, receiver, resolver) {
+  return function promisified () {
+    var args = Array.prototype.slice.call(arguments)
+    return new Promise(function (resolve, reject) {
+      receiver[method].apply(receiver, args.concat(function promisifiedResolve () {
+        resolver.apply({resolve: resolve, reject: reject}, arguments)
+      }))      
+    })
+  }
+}
+
+function stripeResponseHandler (status, response) {
+  if (response.error) {
+    this.reject(extend(new Error(), response.error))
+  }
+  else {
+    this.resolve(response)
+  }
+}
+
+},{"dot-prop":1,"xtend/mutable":3}],3:[function(_dereq_,module,exports){
+module.exports = extend
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+function extend(target) {
+    for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i]
+
+        for (var key in source) {
+            if (hasOwnProperty.call(source, key)) {
+                target[key] = source[key]
+            }
+        }
+    }
+
+    return target
+}
+
+},{}],4:[function(_dereq_,module,exports){
+'use strict'
+
+var service = _dereq_('./service');
+
+module.exports = stripeProvider;
+
+stripeProvider.$inject = ['Stripe'];
+
+function stripeProvider (Stripe) {
+  if (Stripe) {
+      this.setPublishableKey = Stripe.setPublishableKey;
+  } else {
+      this.setPublishableKey = function() {
+          console.log('Stripe is not available as window.Stripe');
+      };
+  }
+
+  this.$get = service;
+}
+
+},{"./service":5}],5:[function(_dereq_,module,exports){
+'use strict'
+
+var stripeAsPromised = _dereq_('stripe-as-promised')
+
+module.exports = factory
+
+factory.$inject = ['Stripe', '$q']
+function factory (Stripe, $q) {
+  return stripeAsPromised(Stripe, $q)
+}
+
+},{"stripe-as-promised":2}],6:[function(_dereq_,module,exports){
+'use strict';
+
+// var angular = require('angular')
+var provider = _dereq_('./provider');
+var Stripe = window.Stripe;
+
+module.exports = angular.module('angular-stripe', [])
+.constant('Stripe', Stripe)
+.provider('stripe', provider)
+.run(verifyQ)
+.name;
+
+},{"./provider":4}]},{},[6])(6)
+});
