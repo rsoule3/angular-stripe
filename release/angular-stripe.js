@@ -164,7 +164,6 @@ var Stripe = window.Stripe;
 module.exports = angular.module('angular-stripe', [])
 .constant('Stripe', Stripe)
 .provider('stripe', provider)
-.run(verifyQ)
 .name;
 
 },{"./provider":4}]},{},[6])(6)
