@@ -1,10 +1,17 @@
-'use strict'
+import stripeAsPromised from 'stripe-as-promised';
 
-var stripeAsPromised = require('stripe-as-promised')
+export {stripeFactory};
 
-module.exports = factory
+stripeFactory.$inject = ['angularLoad', '$q', '$window'];
+function stripeFactory (angularLoad, $q, $window) {
+    let deferred = $q.defer();
 
-factory.$inject = ['Stripe', '$q']
-function factory (Stripe, $q) {
-  return stripeAsPromised(Stripe, $q)
+    angularLoad.loadScript('https://js.stripe.com/v2/').then(function() {
+        let Stripe = $window.Stripe;
+        deferred.resolve(stripeAsPromised(Stripe, $q));
+    }).catch(function(err) {
+        deferred.reject(err);
+    });
+
+    return deferred.promise
 }

@@ -1,19 +1,22 @@
-'use strict'
+import {stripeFactory} from './service';
 
-var service = require('./service');
+export {stripeProvider};
 
-module.exports = stripeProvider;
+stripeProvider.$inject = ['angularLoad', '$window', '$q'];
+function stripeProvider (angularLoad, $window, $q) {
+    let setPublishableKey = $q.defer();
 
-stripeProvider.$inject = ['Stripe'];
+    angularLoad.loadScript('https://js.stripe.com/v2/').then(function() {
+        let stripe = $window.Stripe;
+        setPublishableKey.resolve(stripe.setPublishableKey);
+    }).catch(function() {
+        setPublishableKey.reject(noPublishAbleKey)
+        function noPublishAbleKey() {
+            console.log('Stripe is not available as window.Stripe');
+        };
+    });
 
-function stripeProvider (Stripe) {
-  if (Stripe) {
-      this.setPublishableKey = Stripe.setPublishableKey;
-  } else {
-      this.setPublishableKey = function() {
-          console.log('Stripe is not available as window.Stripe');
-      };
-  }
+    this.setPublishableKey = setPublishableKey.promise;
 
-  this.$get = service;
+    this.$get = stripeFactory;
 }

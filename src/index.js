@@ -1,10 +1,6 @@
-'use strict';
+import {stripeProvider} from './provider';
+import ngLoader from 'angular-load';
 
-// var angular = require('angular')
-var provider = require('./provider');
-var Stripe = window.Stripe;
-
-module.exports = angular.module('angular-stripe', [])
-.constant('Stripe', Stripe)
-.provider('stripe', provider)
+module.exports = angular.module('angular-stripe', ['angularLoad'])
+.provider('stripe', stripeProvider)
 .name;
